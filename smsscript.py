@@ -52,16 +52,22 @@ def send_sms(driver,phoneNumber,message):
 		try:
 			driver.find_element_by_xpath("//div[@class='md-body-1']").click()
 			time.sleep(0.1)
-			number = driver.find_element_by_xpath("//input[@id='input-0']")
-			number.clear()
-			number.send_keys(phoneNumber)
-			time.sleep(0.5)
-			number.send_keys(Keys.RETURN)
-			time.sleep(0.2)
-			messageArea = driver.find_element_by_tag_name("textarea")
-			messageArea.send_keys(message)
-			# messageArea.send_keys(Keys.RETURN)
-			driver.find_elements_by_css_selector('div.uYPEqb-H9tDt')[2].click()
+			for i in range(0,len(phoneNumber),1):
+				#input number
+				number = driver.find_element_by_xpath("//input[@id='input-0']")
+				number.clear()
+				number.send_keys(str(phoneNumber[i]))
+				time.sleep(0.5)
+				number.send_keys(Keys.RETURN)
+				time.sleep(0.2)
+				
+				#send message
+				messageArea = driver.find_element_by_tag_name("textarea")
+				messageArea.clear()
+				messageArea.send_keys(message[i])
+				driver.find_elements_by_css_selector('div.uYPEqb-H9tDt')[2].click()
+				time.sleep(0.2)
+
 			break
 		except:
 			count+=1;
@@ -76,9 +82,9 @@ def sms(number,message):
 	driver =getDriver("desktop")
 	google_login(driver)
 	driver.get("https://voice.google.com/u/0/messages")
-	send_sms(driver,str(number),str(message))
+	send_sms(driver,number,message)
 	
 	time.sleep(5)
 	driver.close()
 	
-# sms(8457642961,"Morning dude")
+sms([3475831270],["iu cưng hehehkakakka"])

@@ -11,10 +11,12 @@ def getDriver(devicetype):
 	options = webdriver.ChromeOptions()
 	mobile_emulation = {"deviceName": "Google Nexus 5"}
 	options.add_argument("user-data-dir=/Users/TriDo/Library/Application Support/Google/Chrome/Default")
+	options.add_argument("window-size=0,0")
 	if(devicetype =="mobile"):
 		options.add_experimental_option("mobileEmulation", mobile_emulation)
 		
 	driver = webdriver.Chrome(executable_path="/Users/TriDo/General_Code/chromedriver", chrome_options=options)
+	driver.set_window_position(2000, 0)
 	return driver
 def bing_login(driver):
 	driver.get(
@@ -46,6 +48,7 @@ def get_bing_rewards(html):
 		print(string[2]+": "+string[0]+string[1])
 	
 driver = getDriver("desktop")
+
 bing_login(driver)
 
 for i in range(1,35,1):
@@ -80,3 +83,5 @@ frame_reward= driver.find_element_by_xpath("//iframe[@id='bepfm']")
 driver.switch_to.frame(frame_reward)
 html =driver.page_source
 get_bing_rewards(html)
+time.sleep(10)
+# driver.close()
