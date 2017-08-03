@@ -1,52 +1,56 @@
 import smtplib
+from email import encoders, parser
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
-import os
-import smsscript
+from optparse import OptionParser
 
-script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
-rel_path = "Minty/minty.jpg"
-abs_file_path = os.path.join(script_dir, rel_path)
+# abs_file_path = "/Users/TriDo/Downloads/heart.jpg"
+youremail = "secret.kingston@gmail.com"
+password = "conchobang2"
 
-fromaddr = "secret.kingston@gmail.com"
-toaddr = ["tmd2142@columbia.edu"]
-tocc=[]
+parser = OptionParser()
+parser.add_option("-t", "--to", action="append", type="string", dest="toaddr")
+parser.add_option("-c", "--cc", action="append", type="string", dest="tocc")
+parser.add_option("-s", "--subject", action="store", type="string", dest="subject", default= "Sent from my Mac")
+parser.add_option("-f", "--file", action="append", type="string", dest="file")
+parser.add_option("-m","--message",action= "store", type="string", dest="message",default ="")
+options, args = parser.parse_args()
 
 server = smtplib.SMTP('smtp.gmail.com', 587)
 server.starttls()
-server.login(fromaddr, "conchobang2")
+server.login(youremail, password)
 
-for i in range(0,1,1):
-	msgRoot = MIMEMultipart('related')
-	msgRoot['Subject'] = 'test message'
-	msgRoot['From'] = fromaddr
-	msgRoot['To'] = ", ".join(toaddr)
-	msgRoot.preamble = 'This is a multi-part message in MIME format.'
+msgRoot = MIMEMultipart()
+msgRoot['Subject'] = options.subject
+msgRoot['From'] = youremail
+msgRoot['To'] = ", ".join(options.toaddr)
+if options.tocc:
+    msgRoot['Cc'] = ", ".join(options.tocc)
+    options.toaddr += options.tocc
 
-	# Encapsulate the plain and HTML versions of the message body in an
-	# 'alternative' part, so message agents can decide which they want to display.
-	msgAlternative = MIMEMultipart('alternative')
-	msgRoot.attach(msgAlternative)
+body = options.message
+msgRoot.attach(MIMEText(body, 'plain'))
 
-	msgText = MIMEText('This is the alternative plain text message.')
-	msgAlternative.attach(msgText)
+# embed image into email
+# fp = open(abs_file_path, 'rb')
+# msgImage = MIMEImage(fp.read())
+# fp.close()
+# msgImage.add_header('Content-ID', '<image1>')
+# msgRoot.attach(msgImage)
 
-	# We reference the image in the IMG SRC attribute by the ID we give it below
-	msgText = MIMEText('<b>Hi <i>Babe</i> </b> <br><img src="cid:image1"><br>', 'html')
-	msgAlternative.attach(msgText)
+# Attachment
+if options.file:
+    for file in options.file:
+        arr = file.split("/")
+        filename = arr[len(arr) - 1]
+        attachment = open(file, "rb")
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload((attachment).read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+        msgRoot.attach(part)
 
-	fp =open(abs_file_path,'rb')
-	msgImage= MIMEImage(fp.read())
-	fp.close()
-	msgImage.add_header('Content-ID', '<image1>')
-	msgRoot.attach(msgImage)
-
-
-	server.sendmail(fromaddr, toaddr+tocc, msgRoot.as_string())
-
+server.sendmail(youremail, options.toaddr, msgRoot.as_string())
 server.quit()
-
-####Send sms#####
-
-smsscript.sms(8457642961, "yeu cung- anh dang test send sms tu dong")
